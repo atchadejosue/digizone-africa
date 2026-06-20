@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiZone — Ajouter un produit</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --deep: #0f0f14;
+    --surface: #15151e;
+    --card: #1c1c28;
+    --border: #2a2a3a;
+    --accent: #f5a623;
+    --accent2: #ff6b35;
+    --green: #00e896;
+    --white: #f0ede8;
+    --muted: #6b6b80;
+    --red: #ff4757;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--white);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2%;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .logo {
+    font-family: var(--font-head);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-decoration: none;
+    color: var(--white);
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--accent); }
+  .logo sup {
+    font-size: 0.42rem;
+    background: var(--accent2);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+    vertical-align: super;
+  }
+
+  .nav-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .nav-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .nav-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-step.active { color: var(--accent); }
+  .nav-step.done { color: var(--green); }
+
+  .nav-step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    transition: all 0.3s;
+  }
+
+  .nav-step.active .nav-step-num {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--black);
+  }
+
+  .nav-step.done .nav-step-num {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--black);
+  }
+
+  .nav-step-sep {
+    width: 28px;
+    height: 1px;
+    background: var(--border);
+    margin: 0 2px;
+  }
+
+  .nav-actions {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--white); color: var(--white); }
+
+  .btn-accent {
+    background: var(--accent);
+    border: none;
+    color: var(--black);
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-family: var(--font-head);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-accent:hover { background: #ffb740; transform: translateY(-1px); }
+
+  /* LAYOUT */
+  .page-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    padding-top: 64px;
+    min-height: 100vh;
+  }
+
+  /* MAIN FORM AREA */
+  .form-area {
+    padding: 2.5rem 3rem;
+    border-right: 1px solid var(--border);
+    min-height: calc(100vh - 64px);
+  }
+
+  /* PREVIEW SIDEBAR */
+  .preview-sidebar {
+    padding: 2rem 1.5rem;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+    background: var(--black);
+  }
+
+  /* Step panels */
+  .step-panel { display: none; }
+  .step-panel.active { display: block; animation: fadeUp 0.3s ease both; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Section headers */
+  .section-head {
+    margin-bottom: 2rem;
+  }
+
+  .section-tag {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  .section-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* Form elements */
+  .field { margin-bottom: 1.25rem; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 7px;
+  }
+
+  .label-req {
+    color: var(--accent);
+    font-size: 0.7rem;
+  }
+
+  .label-opt {
+    color: var(--muted);
+    font-size: 0.65rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  select,
+  textarea {
+    width: 100%;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    outline: none;
+    transition: all 0.2s;
+    appearance: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    background: rgba(245,166,35,0.03);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.08);
+  }
+
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  select option { background: var(--card); }
+  textarea { resize: vertical; line-height: 1.6; }
+
+  .char-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  /* Input with prefix */
+  .input-prefix-wrap {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .input-prefix {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-right: none;
+    border-radius: 10px 0 0 10px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-prefix-wrap input {
+    border-radius: 0 10px 10px 0;
+    flex: 1;
+  }
+
+  /* Price input */
+  .price-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.85rem;
+  }
+
+  .price-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .price-card.active {
+    border-color: var(--accent);
+    background: rgba(245,166,35,0.05);
+  }
+
+  .price-card-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .price-card.active .price-card-label { color: var(--accent); }
+
+  .price-card input {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-family: var(--font-head);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--white);
+    width: 100%;
+    outline: none;
+  }
+
+  .price-card input::placeholder { color: var(--muted); font-weight: 400; font-size: 0.88rem; font-family: var(--font-body); }
+
+  .price-card-currency {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .price-free-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0.75rem;
+    cursor: pointer;
+  }
+
+  /* UPLOAD ZONES */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+    background: var(--card);
+  }
+
+  .upload-zone:hover {
+    border-color: var(--accent);
+    background: rgba(245,166,35,0.03);
+  }
+
+  .upload-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(245,166,35,0.07);
+    transform: scale(1.01);
+  }
+
+  .upload-zone.uploaded {
+    border-color: var(--green);
+    border-style: solid;
+    background: rgba(0,232,150,0.04);
+  }
+
+  .upload-icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+
+  .upload-title {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .upload-sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .upload-btn {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-body);
+  }
+
+  .upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .upload-input { display: none; }
+
+  .upload-formats {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .format-tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 0.62rem;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  /* File preview */
+  .file-preview {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 0.75rem;
+  }
+
+  .file-preview.show { display: flex; }
+
+  .file-icon-lg {
+    width: 44px; height: 44px;
+    background: rgba(245,166,35,0.1);
+    border: 1px solid rgba(245,166,35,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .file-info { flex: 1; min-width: 0; }
+  .file-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .file-size { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .file-remove {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    transition: color 0.2s;
+  }
+  .file-remove:hover { color: var(--red); }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 4px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+
+  /* Cover image grid */
+  .cover-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .cover-opt {
+    aspect-ratio: 1;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .cover-opt:hover, .cover-opt.selected {
+    border-color: var(--accent);
+    background: rgba(245,166,35,0.08);
+  }
+
+  .cover-opt.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 4px; right: 6px;
+    font-size: 0.65rem;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* Tags input */
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-height: 46px;
+    cursor: text;
+    transition: border-color 0.2s;
+  }
+
+  .tags-container:focus-within { border-color: var(--accent); }
+
+  .tag-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(245,166,35,0.1);
+    border: 1px solid rgba(245,166,35,0.25);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .tag-remove {
+    cursor: pointer;
+    font-size: 0.7rem;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .tag-remove:hover { opacity: 1; }
+
+  .tags-input {
+    border: none;
+    background: transparent;
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    outline: none;
+    min-width: 120px;
+    padding: 2px 4px;
+    flex: 1;
+  }
+  .tags-input::placeholder { color: var(--muted); }
+
+  /* Delivery options */
+  .delivery-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .delivery-opt {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: all 0.2s;
+  }
+
+  .delivery-opt:hover { border-color: rgba(245,166,35,0.4); }
+
+  .delivery-opt.selected {
+    border-color: var(--accent);
+    background: rgba(245,166,35,0.05);
+  }
+
+  .d-radio {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin-top: 2px;
+  }
+
+  .delivery-opt.selected .d-radio {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+
+  .delivery-opt.selected .d-radio::after {
+    content: '';
+    width: 7px; height: 7px;
+    background: var(--black);
+    border-radius: 50%;
+  }
+
+  .d-icon { font-size: 1.3rem; }
+
+  .d-info { flex: 1; }
+  .d-title { font-size: 0.88rem; font-weight: 600; margin-bottom: 3px; }
+  .d-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.45; }
+
+  /* Toggle switch */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 0.75rem;
+  }
+
+  .toggle-info { }
+  .toggle-title { font-size: 0.88rem; font-weight: 500; margin-bottom: 3px; }
+  .toggle-sub { font-size: 0.72rem; color: var(--muted); }
+
+  .toggle {
+    width: 42px; height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+
+  .toggle.on { background: var(--accent); }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: left 0.3s;
+  }
+
+  .toggle.on::after { left: 21px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 1rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+  }
+
+  .bottom-nav-left {
+    font-size: 0.78rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .save-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--green);
+  }
+
+  .save-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; }
+    50% { opacity:0.3; }
+  }
+
+  .bottom-nav-right { display: flex; gap: 0.75rem; }
+
+  .btn-back {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: var(--white); color: var(--white); }
+
+  .btn-next {
+    background: var(--accent);
+    border: none;
+    color: var(--black);
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-next:hover { background: #ffb740; transform: translateY(-1px); }
+
+  /* ---- PREVIEW SIDEBAR ---- */
+  .preview-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .preview-label::after {
+    content: 'Aperçu en direct';
+    font-size: 0.6rem;
+    background: rgba(0,232,150,0.1);
+    border: 1px solid rgba(0,232,150,0.2);
+    color: var(--green);
+    padding: 2px 7px;
+    border-radius: 20px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+
+  .preview-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .preview-thumb {
+    height: 160px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    position: relative;
+  }
+
+  .preview-thumb-emoji {
+    font-size: 4rem;
+    filter: drop-shadow(0 4px 20px rgba(245,166,35,0.2));
+    transition: all 0.3s;
+  }
+
+  .preview-body { padding: 14px; }
+
+  .preview-cat {
+    font-size: 0.65rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .preview-title {
+    font-family: var(--font-head);
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    color: var(--white);
+    min-height: 38px;
+  }
+
+  .preview-desc {
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-bottom: 12px;
+    min-height: 50px;
+  }
+
+  .preview-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .preview-price {
+    font-family: var(--font-head);
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .preview-buy {
+    background: var(--accent);
+    border: none;
+    color: var(--black);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-family: var(--font-head);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* Completeness */
+  .completeness {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 1rem;
+  }
+
+  .comp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .comp-label { font-size: 0.72rem; font-weight: 600; }
+  .comp-pct { font-family: var(--font-head); font-size: 1rem; font-weight: 800; color: var(--accent); }
+
+  .comp-bar {
+    height: 5px;
+    background: var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .comp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    border-radius: 5px;
+    width: 40%;
+    transition: width 0.4s ease;
+  }
+
+  .comp-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .comp-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .comp-item.done { color: var(--green); }
+  .comp-item.missing { color: var(--muted); }
+
+  .comp-check {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    flex-shrink: 0;
+  }
+
+  .comp-item.done .comp-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--black);
+    font-weight: 700;
+  }
+
+  /* Tips */
+  .tips-box {
+    background: rgba(245,166,35,0.06);
+    border: 1px solid rgba(245,166,35,0.15);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .tips-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .tips-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .tips-list li {
+    font-size: 0.7rem;
+    color: var(--muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.45;
+  }
+
+  .tips-list li::before {
+    content: '→';
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Success */
+  .success-page {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 64px);
+    text-align: center;
+    padding: 3rem;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .success-page.active { display: flex; }
+
+  .success-burst {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    animation: popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0) rotate(-20deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .success-title {
+    font-family: var(--font-head);
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 0.75rem;
+  }
+
+  .success-sub {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.65;
+    max-width: 420px;
+    margin-bottom: 2rem;
+  }
+
+  .success-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .sinfo-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .sinfo-icon { font-size: 1.5rem; margin-bottom: 6px; }
+  .sinfo-val { font-family: var(--font-head); font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
+  .sinfo-label { font-size: 0.65rem; color: var(--muted); }
+
+  .success-btns {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .success-btn-main {
+    flex: 1;
+    background: var(--accent);
+    border: none;
+    color: var(--black);
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-family: var(--font-head);
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 180px;
+  }
+
+  .success-btn-main:hover { background: #ffb740; transform: translateY(-2px); }
+
+  .success-btn-sec {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .success-btn-sec:hover { border-color: var(--white); color: var(--white); }
+
+  .share-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .share-link {
+    flex: 1;
+    font-size: 0.78rem;
+    color: var(--accent);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .share-copy {
+    background: var(--accent);
+    border: none;
+    color: var(--black);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: var(--font-head);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .share-copy:hover { background: #ffb740; }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1.75rem 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 1000px) {
+    .page-layout { grid-template-columns: 1fr; }
+    .preview-sidebar { display: none; }
+    .nav-center { display: none; }
+    .form-area { padding: 2rem 1.5rem 6rem; border-right: none; }
+  }
+
+  @media (max-width: 600px) {
+    .field-row { grid-template-columns: 1fr; }
+    .price-group { grid-template-columns: 1fr; }
+    .cover-grid { grid-template-columns: repeat(4, 1fr); }
+    .bottom-nav { padding: 0.75rem 1.25rem; }
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">Digi<span>Zone</span> <sup>AF</sup></a>
+
+  <div class="nav-center">
+    <div class="nav-steps">
+      <div class="nav-step active" id="nav-s1" onclick="goStep(1)">
+        <div class="nav-step-num">1</div>
+        Infos produit
+      </div>
+      <div class="nav-step-sep"></div>
+      <div class="nav-step" id="nav-s2" onclick="goStep(2)">
+        <div class="nav-step-num">2</div>
+        Fichier & Couverture
+      </div>
+      <div class="nav-step-sep"></div>
+      <div class="nav-step" id="nav-s3" onclick="goStep(3)">
+        <div class="nav-step-num">3</div>
+        Prix & Livraison
+      </div>
+      <div class="nav-step-sep"></div>
+      <div class="nav-step" id="nav-s4" onclick="goStep(4)">
+        <div class="nav-step-num">4</div>
+        Paramètres
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-actions">
+    <button class="btn-ghost">💾 Brouillon</button>
+    <button class="btn-accent" onclick="publishProduct()">Publier →</button>
+  </div>
+</nav>
+
+<!-- PAGE LAYOUT -->
+<div class="page-layout" id="main-layout">
+
+  <!-- FORM AREA -->
+  <div class="form-area" style="padding-bottom: 90px;">
+
+    <!-- STEP 1: Infos produit -->
+    <div class="step-panel active" id="step-1">
+      <div class="section-head">
+        <div class="section-tag">Étape 1 sur 4</div>
+        <div class="section-title">Informations du produit</div>
+        <p class="section-sub">Ces informations apparaîtront sur la marketplace et sur ta page produit.</p>
+      </div>
+
+      <div class="field">
+        <label>Titre du produit <span class="label-req">*</span></label>
+        <input type="text" id="prod-title" placeholder="Ex: Guide Complet du Business en Ligne pour l'Afrique 2025"
+          oninput="updatePreview()" maxlength="80" />
+        <div class="char-count" id="title-count">0 / 80</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" style="margin-bottom:0;">
+          <label>Catégorie <span class="label-req">*</span></label>
+          <select id="prod-cat" onchange="updatePreview()">
+            <option value="">-- Choisir --</option>
+            <option value="📚 Ebook">📚 Ebook</option>
+            <option value="🎓 Formation">🎓 Formation</option>
+            <option value="🎨 Template">🎨 Template</option>
+            <option value="🎵 Beats & Sons">🎵 Beats & Sons</option>
+            <option value="💻 Logiciel">💻 Logiciel</option>
+            <option value="🤖 Prompts IA">🤖 Prompts IA</option>
+            <option value="📊 Business">📊 Business</option>
+            <option value="📷 Photos & Vidéos">📷 Photos & Vidéos</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Langue <span class="label-req">*</span></label>
+          <select>
+            <option>🇫🇷 Français</option>
+            <option>🇬🇧 Anglais</option>
+            <option>🌍 Bilingue</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Description courte <span class="label-req">*</span> <span class="label-opt">Affiché sur la carte produit</span></label>
+        <textarea id="prod-desc" rows="3" maxlength="200" placeholder="Résume ton produit en 1-2 phrases percutantes. Ex: Guide de 180 pages pour lancer ton business en ligne depuis l'Afrique..." oninput="updatePreview()"></textarea>
+        <div class="char-count" id="desc-count">0 / 200</div>
+      </div>
+
+      <div class="field">
+        <label>Description complète <span class="label-req">*</span> <span class="label-opt">Page produit</span></label>
+        <textarea rows="7" placeholder="Décris en détail ce que contient ton produit, ce que l'acheteur va apprendre ou obtenir, à qui c'est destiné, les résultats attendus...&#10;&#10;Plus ta description est complète, plus tu vendras."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Ce que le client obtient <span class="label-req">*</span></label>
+        <div id="deliverables-list">
+          <div class="input-prefix-wrap" style="margin-bottom:0.5rem;">
+            <div class="input-prefix">✓</div>
+            <input type="text" placeholder="Ex: PDF de 180 pages — Accès à vie" />
+          </div>
+          <div class="input-prefix-wrap" style="margin-bottom:0.5rem;">
+            <div class="input-prefix">✓</div>
+            <input type="text" placeholder="Ex: Tableau Excel de suivi des revenus" />
+          </div>
+          <div class="input-prefix-wrap" style="margin-bottom:0.5rem;">
+            <div class="input-prefix">✓</div>
+            <input type="text" placeholder="Ex: Accès au groupe WhatsApp privé" />
+          </div>
+        </div>
+        <button onclick="addDeliverable()" style="background:none;border:1px dashed var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;font-size:0.78rem;cursor:pointer;margin-top:0.4rem;font-family:var(--font-body);transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+          + Ajouter un élément
+        </button>
+      </div>
+
+      <div class="field">
+        <label>Mots-clés <span class="label-opt">Aide au référencement</span></label>
+        <div class="tags-container" onclick="document.getElementById('tag-input').focus()">
+          <div class="tag-item">business en ligne <span class="tag-remove" onclick="removeTag(this)">×</span></div>
+          <div class="tag-item">Afrique <span class="tag-remove" onclick="removeTag(this)">×</span></div>
+          <div class="tag-item">ebook <span class="tag-remove" onclick="removeTag(this)">×</span></div>
+          <input class="tags-input" id="tag-input" placeholder="Ajouter un mot-clé..." onkeydown="addTag(event)" />
+        </div>
+        <div style="font-size:0.65rem;color:var(--muted);margin-top:5px;">Appuie sur Entrée pour ajouter · Max 10 mots-clés</div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Fichier & Couverture -->
+    <div class="step-panel" id="step-2">
+      <div class="section-head">
+        <div class="section-tag">Étape 2 sur 4</div>
+        <div class="section-title">Fichier & Couverture</div>
+        <p class="section-sub">Upload ton fichier produit et choisis une image de couverture attractive.</p>
+      </div>
+
+      <div class="field">
+        <label>Fichier principal <span class="label-req">*</span></label>
+        <div class="upload-zone" id="upload-zone-main"
+          ondragover="handleDragOver(event,'upload-zone-main')"
+          ondragleave="handleDragLeave('upload-zone-main')"
+          ondrop="handleDrop(event,'main-file-preview')"
+          onclick="document.getElementById('main-file-input').click()">
+          <span class="upload-icon">📁</span>
+          <div class="upload-title">Glisse ton fichier ici</div>
+          <div class="upload-sub">ou clique pour sélectionner depuis ton appareil</div>
+          <div class="upload-btn">Choisir le fichier</div>
+          <div class="upload-formats">
+            <span class="format-tag">PDF</span>
+            <span class="format-tag">ZIP</span>
+            <span class="format-tag">MP4</span>
+            <span class="format-tag">MP3</span>
+            <span class="format-tag">DOCX</span>
+            <span class="format-tag">XLSX</span>
+            <span class="format-tag">PNG</span>
+          </div>
+          <input type="file" class="upload-input" id="main-file-input" onchange="handleFileSelect(this,'main-file-preview','upload-zone-main')" />
+        </div>
+        <div class="file-preview" id="main-file-preview">
+          <div class="file-icon-lg">📄</div>
+          <div class="file-info">
+            <div class="file-name" id="main-file-name">guide-business-afrique.pdf</div>
+            <div class="file-size" id="main-file-size">12.4 MB</div>
+            <div class="progress-bar"><div class="progress-fill" id="main-progress"></div></div>
+          </div>
+          <button class="file-remove" onclick="removeFile('main-file-preview','upload-zone-main')">✕</button>
+        </div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:6px;">Taille max : 500 MB · Le fichier est crypté et sécurisé par DigiZone</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Image de couverture <span class="label-req">*</span></label>
+        <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.85rem;line-height:1.5;">Choisis une icône ou uploade ta propre couverture. Une belle couverture augmente les ventes de 40%.</p>
+
+        <div class="cover-grid" id="cover-grid">
+          <div class="cover-opt selected" onclick="selectCover(this,'📚')">📚</div>
+          <div class="cover-opt" onclick="selectCover(this,'🎓')">🎓</div>
+          <div class="cover-opt" onclick="selectCover(this,'📊')">📊</div>
+          <div class="cover-opt" onclick="selectCover(this,'💡')">💡</div>
+          <div class="cover-opt" onclick="selectCover(this,'🚀')">🚀</div>
+          <div class="cover-opt" onclick="selectCover(this,'💰')">💰</div>
+          <div class="cover-opt" onclick="selectCover(this,'🎵')">🎵</div>
+          <div class="cover-opt" onclick="selectCover(this,'🎨')">🎨</div>
+        </div>
+
+        <div class="upload-zone" id="cover-upload-zone" style="padding:1.5rem;margin-top:0.5rem;"
+          onclick="document.getElementById('cover-input').click()">
+          <span class="upload-icon" style="font-size:1.8rem;">🖼️</span>
+          <div class="upload-title" style="font-size:0.9rem;">Uploader ma propre image</div>
+          <div class="upload-sub" style="font-size:0.72rem;">JPG, PNG · Recommandé : 800×600px</div>
+          <input type="file" class="upload-input" id="cover-input" accept="image/*" onchange="handleCoverSelect(this)" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Fichier de prévisualisation <span class="label-opt">Optionnel — Extrait gratuit</span></label>
+        <div class="upload-zone" style="padding:1.5rem;"
+          onclick="document.getElementById('preview-file-input').click()">
+          <span class="upload-icon" style="font-size:1.8rem;">👁️</span>
+          <div class="upload-title" style="font-size:0.9rem;">Ajouter un aperçu gratuit</div>
+          <div class="upload-sub" style="font-size:0.72rem;">Extrait PDF, vidéo courte... Les acheteurs font +35% confiance avec un aperçu.</div>
+          <input type="file" class="upload-input" id="preview-file-input" />
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Prix & Livraison -->
+    <div class="step-panel" id="step-3">
+      <div class="section-head">
+        <div class="section-tag">Étape 3 sur 4</div>
+        <div class="section-title">Prix & Livraison</div>
+        <p class="section-sub">Fixe ton prix et comment ton produit est livré à l'acheteur.</p>
+      </div>
+
+      <div class="field">
+        <label>Tarification <span class="label-req">*</span></label>
+        <div class="price-group">
+          <div class="price-card active" onclick="activatePriceCard(this)">
+            <div class="price-card-label">Prix normal</div>
+            <input type="number" id="price-normal" placeholder="8 500" oninput="updatePrice()" />
+            <div class="price-card-currency">FCFA</div>
+          </div>
+          <div class="price-card" onclick="activatePriceCard(this)">
+            <div class="price-card-label">Prix promotionnel</div>
+            <input type="number" id="price-promo" placeholder="6 000" oninput="updatePrice()" />
+            <div class="price-card-currency">FCFA · Optionnel</div>
+          </div>
+          <div class="price-card" onclick="activatePriceCard(this);">
+            <div class="price-card-label">Gratuit</div>
+            <div style="font-family:var(--font-head);font-size:1rem;font-weight:700;color:var(--green);margin-top:4px;">0 FCFA</div>
+            <div class="price-card-currency">Lead magnet</div>
+          </div>
+        </div>
+
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:0.85rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:5px;">
+            <span style="color:var(--muted);">Prix de vente</span>
+            <span id="calc-prix" style="font-weight:600;">8 500 FCFA</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:5px;">
+            <span style="color:var(--muted);">Commission DigiZone (8%)</span>
+            <span id="calc-comm" style="color:var(--accent2);">- 680 FCFA</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-top:6px;border-top:1px solid var(--border);">
+            <span style="font-weight:600;">Tu reçois</span>
+            <span id="calc-net" style="font-family:var(--font-head);font-size:1rem;font-weight:800;color:var(--green);">7 820 FCFA</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Mode de livraison <span class="label-req">*</span></label>
+        <div class="delivery-options">
+          <div class="delivery-opt selected" onclick="selectDelivery(this)">
+            <div class="d-radio"></div>
+            <div class="d-icon">⚡</div>
+            <div class="d-info">
+              <div class="d-title">Livraison automatique instantanée</div>
+              <div class="d-desc">Le client reçoit le fichier par email dès le paiement confirmé. Recommandé pour tous les produits digitaux.</div>
+            </div>
+          </div>
+          <div class="delivery-opt" onclick="selectDelivery(this)">
+            <div class="d-radio"></div>
+            <div class="d-icon">💬</div>
+            <div class="d-info">
+              <div class="d-title">Livraison via WhatsApp</div>
+              <div class="d-desc">Tu reçois une notification et envoies le fichier manuellement via WhatsApp. Plus personnalisé mais requiert ta présence.</div>
+            </div>
+          </div>
+          <div class="delivery-opt" onclick="selectDelivery(this)">
+            <div class="d-radio"></div>
+            <div class="d-icon">🔗</div>
+            <div class="d-info">
+              <div class="d-title">Lien d'accès externe</div>
+              <div class="d-desc">Redirige vers un lien (Google Drive, Notion, plateforme de cours...). Idéal pour les formations en ligne.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" id="external-link-field" style="display:none;">
+        <label>Lien d'accès externe <span class="label-req">*</span></label>
+        <div class="input-prefix-wrap">
+          <div class="input-prefix">🔗</div>
+          <input type="url" placeholder="https://drive.google.com/..." />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Message de confirmation <span class="label-opt">Envoyé après achat</span></label>
+        <textarea rows="3" placeholder="Ex: Merci pour ton achat ! 🎉 Tu trouveras ton guide en pièce jointe. N'hésite pas à me contacter sur WhatsApp si tu as des questions. Bonne lecture !"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Politique de remboursement</label>
+        <select>
+          <option>Pas de remboursement (produit digital)</option>
+          <option>Remboursement sous 7 jours</option>
+          <option>Remboursement sous 14 jours</option>
+          <option>Remboursement sous 30 jours</option>
+          <option>Politique personnalisée</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STEP 4: Paramètres -->
+    <div class="step-panel" id="step-4">
+      <div class="section-head">
+        <div class="section-tag">Étape 4 sur 4</div>
+        <div class="section-title">Paramètres & Options</div>
+        <p class="section-sub">Configure les options avancées de ton produit.</p>
+      </div>
+
+      <div class="field">
+        <label>Visibilité</label>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Visible sur la marketplace</div>
+            <div class="toggle-sub">Ton produit apparaîtra dans les résultats de recherche et les catégories DigiZone.</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Vente via lien WhatsApp uniquement</div>
+            <div class="toggle-sub">Ton produit n'est accessible que via ton lien personnel. Idéal pour une audience existante.</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Programme d'affiliation</label>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Activer l'affiliation pour ce produit</div>
+            <div class="toggle-sub">Permets à d'autres vendeurs de promouvoir ton produit et de gagner une commission.</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:0.75rem;">
+          <label style="margin-bottom:8px;">Commission affilié</label>
+          <div class="input-prefix-wrap">
+            <input type="number" value="15" style="border-radius:10px 0 0 10px;" />
+            <div class="input-prefix" style="border:1.5px solid var(--border);border-left:none;border-radius:0 10px 10px 0;">%</div>
+          </div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-top:6px;">Recommandé : 10–20% · Les affiliés gagneront <span id="aff-amount" style="color:var(--accent);">1 275 FCFA</span> par vente.</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Limitation des ventes <span class="label-opt">Optionnel</span></label>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Limiter le nombre d'acheteurs</div>
+            <div class="toggle-sub">Crée de la rareté pour augmenter l'urgence d'achat. Ex: "Plus que 10 exemplaires disponibles".</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on');document.getElementById('limit-field').style.display=this.classList.contains('on')?'block':'none'"></div>
+        </div>
+        <div id="limit-field" style="display:none;margin-top:0.75rem;">
+          <label>Nombre maximum d'acheteurs</label>
+          <input type="number" placeholder="Ex: 50" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Vente groupée <span class="label-opt">Upsell</span></label>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Proposer un produit complémentaire</div>
+            <div class="toggle-sub">Après l'achat, suggère un autre de tes produits pour augmenter ton panier moyen.</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Date de publication</label>
+        <div style="display:flex;gap:0.75rem;">
+          <div style="flex:1;">
+            <div class="toggle-row" style="cursor:pointer;" onclick="document.getElementById('pubtype-now').click()">
+              <div class="toggle-info">
+                <div class="toggle-title">Publier maintenant</div>
+                <div class="toggle-sub">Ton produit sera visible immédiatement.</div>
+              </div>
+              <input type="radio" id="pubtype-now" name="pubtype" checked style="accent-color:var(--accent);width:18px;height:18px;" />
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;margin-top:0.5rem;">
+          <div class="toggle-row" style="cursor:pointer;" onclick="document.getElementById('pubtype-later').click();document.getElementById('sched-date').style.display='block'">
+            <div class="toggle-info">
+              <div class="toggle-title">Planifier la publication</div>
+              <div class="toggle-sub">Choisis une date et heure précises.</div>
+            </div>
+            <input type="radio" id="pubtype-later" name="pubtype" style="accent-color:var(--accent);width:18px;height:18px;" />
+          </div>
+          <div id="sched-date" style="display:none;margin-top:0.5rem;">
+            <input type="datetime-local" style="width:100%;" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PREVIEW SIDEBAR -->
+  <div class="preview-sidebar">
+    <div class="preview-label">Aperçu produit</div>
+
+    <!-- Card preview -->
+    <div class="preview-card">
+      <div class="preview-thumb">
+        <div class="preview-thumb-emoji" id="preview-emoji">📚</div>
+      </div>
+      <div class="preview-body">
+        <div class="preview-cat" id="preview-cat">Catégorie</div>
+        <div class="preview-title" id="preview-title">Titre de ton produit</div>
+        <div class="preview-desc" id="preview-desc">Décris ton produit en 1-2 phrases percutantes pour attirer tes acheteurs...</div>
+        <div class="preview-footer">
+          <div class="preview-price" id="preview-price">— FCFA</div>
+          <button class="preview-buy">Acheter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completeness -->
+    <div class="completeness">
+      <div class="comp-header">
+        <div class="comp-label">Complétude du produit</div>
+        <div class="comp-pct" id="comp-pct">40%</div>
+      </div>
+      <div class="comp-bar">
+        <div class="comp-fill" id="comp-fill"></div>
+      </div>
+      <div class="comp-items">
+        <div class="comp-item done" id="ci-title">
+          <div class="comp-check">✓</div> Titre du produit
+        </div>
+        <div class="comp-item missing" id="ci-desc">
+          <div class="comp-check"></div> Description
+        </div>
+        <div class="comp-item missing" id="ci-file">
+          <div class="comp-check"></div> Fichier principal
+        </div>
+        <div class="comp-item missing" id="ci-cover">
+          <div class="comp-check"></div> Couverture
+        </div>
+        <div class="comp-item missing" id="ci-price">
+          <div class="comp-check"></div> Prix défini
+        </div>
+        <div class="comp-item done" id="ci-delivery">
+          <div class="comp-check">✓</div> Mode de livraison
+        </div>
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="tips-box">
+      <div class="tips-title">💡 Conseils DigiZone</div>
+      <ul class="tips-list">
+        <li>Un titre avec un chiffre vend mieux : "180 pages", "50 templates", "30 jours"</li>
+        <li>Mentionne "Afrique", "FCFA", "Mobile Money" — ça rassure l'acheteur local</li>
+        <li>Un aperçu gratuit (extrait PDF) booste les conversions de 35%</li>
+        <li>Active l'affiliation : tu vendras 3× plus sans effort</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS PAGE -->
+<div class="success-page" id="success-page">
+  <div class="success-burst">🎉</div>
+  <div class="success-title">Produit publié !</div>
+  <p class="success-sub">Ton produit est maintenant <strong style="color:var(--accent);">visible sur DigiZone</strong> et prêt à générer des ventes. Partage ton lien pour commencer !</p>
+
+  <div class="share-box">
+    <div class="share-link">digizone.af/amara-marketing/guide-business-afrique</div>
+    <button class="share-copy" onclick="copyLink()">📋 Copier</button>
+  </div>
+
+  <div class="success-info-grid">
+    <div class="sinfo-card">
+      <div class="sinfo-icon">👁️</div>
+      <div class="sinfo-val">0</div>
+      <div class="sinfo-label">Vues</div>
+    </div>
+    <div class="sinfo-card">
+      <div class="sinfo-icon">💰</div>
+      <div class="sinfo-val">0 F</div>
+      <div class="sinfo-label">Revenus</div>
+    </div>
+    <div class="sinfo-card">
+      <div class="sinfo-icon">🤝</div>
+      <div class="sinfo-val">0</div>
+      <div class="sinfo-label">Affiliés</div>
+    </div>
+  </div>
+
+  <div class="success-btns">
+    <button class="success-btn-main" onclick="addAnother()">+ Ajouter un autre produit</button>
+    <button class="success-btn-sec">📊 Dashboard</button>
+    <button class="success-btn-sec" style="background:#25D366;color:white;border-color:#25D366;">💬 Partager WhatsApp</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="bottom-nav">
+  <div class="bottom-nav-left">
+    <div class="save-indicator">
+      <div class="save-dot"></div>
+      Sauvegardé automatiquement
+    </div>
+  </div>
+  <div class="bottom-nav-right">
+    <button class="btn-back" id="btn-back" onclick="prevStep()" style="display:none;">← Retour</button>
+    <button class="btn-ghost" onclick="previewProduct()">👁️ Aperçu</button>
+    <button class="btn-next" id="btn-next" onclick="nextStep()">Étape suivante →</button>
+  </div>
+</div>
+
+<script>
+  let currentStep = 1;
+  const maxSteps = 4;
+
+  function goStep(n) {
+    document.getElementById('step-' + currentStep).classList.remove('active');
+    document.getElementById('nav-s' + currentStep).classList.remove('active');
+    currentStep = n;
+    document.getElementById('step-' + currentStep).classList.add('active');
+    document.getElementById('nav-s' + currentStep).classList.add('active');
+    updateNav();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function nextStep() {
+    if (currentStep < maxSteps) {
+      document.getElementById('nav-s' + currentStep).classList.remove('active');
+      document.getElementById('nav-s' + currentStep).classList.add('done');
+      document.getElementById('nav-s' + currentStep).querySelector('.nav-step-num').textContent = '✓';
+      goStep(currentStep + 1);
+    } else {
+      publishProduct();
+    }
+  }
+
+  function prevStep() {
+    if (currentStep > 1) {
+      document.getElementById('nav-s' + currentStep).classList.remove('active');
+      currentStep--;
+      document.getElementById('nav-s' + currentStep).classList.remove('done');
+      document.getElementById('nav-s' + currentStep).querySelector('.nav-step-num').textContent = currentStep;
+      goStep(currentStep);
+    }
+  }
+
+  function updateNav() {
+    const backBtn = document.getElementById('btn-back');
+    const nextBtn = document.getElementById('btn-next');
+    backBtn.style.display = currentStep > 1 ? 'block' : 'none';
+    nextBtn.textContent = currentStep === maxSteps ? '🚀 Publier maintenant' : 'Étape suivante →';
+  }
+
+  function publishProduct() {
+    document.getElementById('main-layout').style.display = 'none';
+    document.getElementById('bottom-nav').style.display = 'none';
+    document.getElementById('success-page').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function addAnother() {
+    document.getElementById('main-layout').style.display = 'grid';
+    document.getElementById('bottom-nav').style.display = 'flex';
+    document.getElementById('success-page').classList.remove('active');
+    currentStep = 1;
+    goStep(1);
+    ['nav-s2','nav-s3','nav-s4'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('done','active');
+      el.querySelector('.nav-step-num').textContent = id.replace('nav-s','');
+    });
+  }
+
+  function previewProduct() {
+    alert('Aperçu de ta page produit DigiZone — visible en live dans la colonne droite !');
+  }
+
+  // Preview update
+  function updatePreview() {
+    const title = document.getElementById('prod-title').value;
+    const desc = document.getElementById('prod-desc').value;
+    const cat = document.getElementById('prod-cat').value;
+
+    document.getElementById('preview-title').textContent = title || 'Titre de ton produit';
+    document.getElementById('preview-desc').textContent = desc || 'Décris ton produit en 1-2 phrases percutantes...';
+    document.getElementById('preview-cat').textContent = cat || 'Catégorie';
+
+    const tc = document.getElementById('title-count');
+    if (tc) tc.textContent = title.length + ' / 80';
+    const dc = document.getElementById('desc-count');
+    if (dc) dc.textContent = desc.length + ' / 200';
+  }
+
+  function updatePrice() {
+    const p = parseInt(document.getElementById('price-normal').value) || 0;
+    const comm = Math.round(p * 0.08);
+    const net = p - comm;
+    document.getElementById('calc-prix').textContent = p.toLocaleString() + ' FCFA';
+    document.getElementById('calc-comm').textContent = '- ' + comm.toLocaleString() + ' FCFA';
+    document.getElementById('calc-net').textContent = net.toLocaleString() + ' FCFA';
+    document.getElementById('preview-price').textContent = p > 0 ? p.toLocaleString() + ' FCFA' : '— FCFA';
+
+    const affAmt = Math.round(p * 0.15);
+    const affEl = document.getElementById('aff-amount');
+    if (affEl) affEl.textContent = affAmt.toLocaleString() + ' FCFA';
+  }
+
+  function activatePriceCard(card) {
+    document.querySelectorAll('.price-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+  }
+
+  function selectCover(opt, emoji) {
+    document.querySelectorAll('.cover-opt').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    document.getElementById('preview-emoji').textContent = emoji;
+  }
+
+  function selectDelivery(opt) {
+    document.querySelectorAll('.delivery-opt').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    const isExternal = opt.querySelector('.d-title').textContent.includes('externe');
+    const field = document.getElementById('external-link-field');
+    if (field) field.style.display = isExternal ? 'block' : 'none';
+  }
+
+  // File upload handlers
+  function handleFileSelect(input, previewId, zoneId) {
+    const file = input.files[0];
+    if (!file) return;
+    showFilePreview(file, previewId, zoneId);
+  }
+
+  function showFilePreview(file, previewId, zoneId) {
+    const preview = document.getElementById(previewId);
+    preview.classList.add('show');
+    document.getElementById('main-file-name').textContent = file.name;
+    document.getElementById('main-file-size').textContent = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+    document.getElementById(zoneId).classList.add('uploaded');
+    // Simulate upload progress
+    let w = 0;
+    const bar = document.getElementById('main-progress');
+    const interval = setInterval(() => {
+      w += Math.random() * 15;
+      if (w >= 100) { w = 100; clearInterval(interval); }
+      if (bar) bar.style.width = w + '%';
+    }, 120);
+  }
+
+  function removeFile(previewId, zoneId) {
+    document.getElementById(previewId).classList.remove('show');
+    document.getElementById(zoneId).classList.remove('uploaded');
+    const bar = document.getElementById('main-progress');
+    if (bar) bar.style.width = '0%';
+  }
+
+  function handleDragOver(e, zoneId) {
+    e.preventDefault();
+    document.getElementById(zoneId).classList.add('dragover');
+  }
+
+  function handleDragLeave(zoneId) {
+    document.getElementById(zoneId).classList.remove('dragover');
+  }
+
+  function handleDrop(e, previewId) {
+    e.preventDefault();
+    document.getElementById('upload-zone-main').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) showFilePreview(file, previewId, 'upload-zone-main');
+  }
+
+  function handleCoverSelect(input) {
+    if (input.files[0]) {
+      document.getElementById('preview-emoji').textContent = '🖼️';
+      document.querySelectorAll('.cover-opt').forEach(o => o.classList.remove('selected'));
+    }
+  }
+
+  // Tags
+  function addTag(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const input = document.getElementById('tag-input');
+      const val = input.value.trim();
+      if (!val) return;
+      const tag = document.createElement('div');
+      tag.className = 'tag-item';
+      tag.innerHTML = val + ' <span class="tag-remove" onclick="removeTag(this)">×</span>';
+      input.parentNode.insertBefore(tag, input);
+      input.value = '';
+    }
+  }
+
+  function removeTag(el) {
+    el.parentNode.remove();
+  }
+
+  // Deliverables
+  function addDeliverable() {
+    const list = document.getElementById('deliverables-list');
+    const wrap = document.createElement('div');
+    wrap.className = 'input-prefix-wrap';
+    wrap.style.marginBottom = '0.5rem';
+    wrap.innerHTML = '<div class="input-prefix">✓</div><input type="text" placeholder="Ex: Bonus supplémentaire..." />';
+    list.appendChild(wrap);
+    wrap.querySelector('input').focus();
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText('https://digizone.af/amara-marketing/guide-business-afrique').catch(() => {});
+    const btn = document.querySelector('.share-copy');
+    btn.textContent = '✓ Copié !';
+    btn.style.background = 'var(--green)';
+    setTimeout(() => {
+      btn.textContent = '📋 Copier';
+      btn.style.background = 'var(--accent)';
+    }, 2000);
+  }
+
+  updateNav();
+</script>
+
+</body>
+</html>

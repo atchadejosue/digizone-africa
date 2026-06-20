@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiZone — Paiement sécurisé</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --deep: #0f0f14;
+    --surface: #15151e;
+    --card: #1c1c28;
+    --border: #2a2a3a;
+    --accent: #f5a623;
+    --accent2: #ff6b35;
+    --green: #00e896;
+    --white: #f0ede8;
+    --muted: #6b6b80;
+    --red: #ff4757;
+    --mtn: #ffcc00;
+    --orange: #ff6600;
+    --wave: #1a73e8;
+    --moov: #004a9c;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--white);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 5%;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: var(--font-head);
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .logo span { color: var(--accent); }
+  .logo sup {
+    font-size: 0.4rem;
+    background: var(--accent2);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+    vertical-align: super;
+  }
+
+  .nav-secure {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .secure-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:0.4; transform:scale(0.75); }
+  }
+
+  .nav-back {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--white); }
+
+  /* SCREENS */
+  .screen { display: none; animation: fadeIn 0.4s ease both; }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== CHECKOUT SCREEN ===== */
+  .checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 0;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* LEFT: Payment Form */
+  .payment-form {
+    padding: 2.5rem 3rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .form-section {
+    margin-bottom: 2rem;
+  }
+
+  .form-section-title {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .step-badge {
+    width: 22px; height: 22px;
+    background: var(--accent);
+    color: var(--black);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  /* Method selector */
+  .methods-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .method-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .method-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .method-card:hover { border-color: rgba(245,166,35,0.5); }
+
+  .method-card.selected { border-width: 2px; }
+  .method-card.selected::before { opacity: 1; }
+
+  .method-card.mtn.selected { border-color: var(--mtn); background: rgba(255,204,0,0.06); }
+  .method-card.orange.selected { border-color: var(--orange); background: rgba(255,102,0,0.06); }
+  .method-card.wave.selected { border-color: var(--wave); background: rgba(26,115,232,0.06); }
+  .method-card.moov.selected { border-color: #00b14f; background: rgba(0,177,79,0.06); }
+  .method-card.card-pay.selected { border-color: var(--accent); background: rgba(245,166,35,0.06); }
+  .method-card.airtel.selected { border-color: #e30014; background: rgba(227,0,20,0.06); }
+
+  .method-logo {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    font-family: var(--font-head);
+  }
+
+  .method-logo.mtn-logo { background: var(--mtn); color: var(--black); font-size: 0.6rem; }
+  .method-logo.orange-logo { background: var(--orange); color: white; font-size: 0.6rem; }
+  .method-logo.wave-logo { background: var(--wave); color: white; font-size: 0.6rem; }
+  .method-logo.moov-logo { background: #00b14f; color: white; font-size: 0.6rem; }
+  .method-logo.card-logo { background: var(--surface); border: 1px solid var(--border); color: var(--white); }
+  .method-logo.airtel-logo { background: #e30014; color: white; font-size: 0.6rem; }
+
+  .method-info { flex: 1; min-width: 0; }
+  .method-name { font-size: 0.85rem; font-weight: 600; }
+  .method-sub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  .method-check {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .method-card.selected .method-check {
+    border-color: var(--accent);
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .method-card.selected .method-check::after {
+    content: '✓';
+    font-size: 0.5rem;
+    color: var(--black);
+    font-weight: 900;
+  }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    margin: 1rem 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Form fields */
+  .field { margin-bottom: 1rem; }
+
+  label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 7px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"] {
+    width: 100%;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 14px;
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  input:focus {
+    border-color: var(--accent);
+    background: rgba(245,166,35,0.03);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.08);
+  }
+
+  input::placeholder { color: var(--muted); }
+
+  .input-wrap { position: relative; }
+  .input-prefix-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    pointer-events: none;
+  }
+  .input-wrap input { padding-left: 40px; }
+
+  /* Phone input with country code */
+  .phone-wrap {
+    display: flex;
+    gap: 0;
+  }
+
+  .country-code {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-right: none;
+    border-radius: 10px 0 0 10px;
+    padding: 13px 12px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    min-width: 90px;
+    transition: all 0.2s;
+  }
+
+  .country-code:hover { border-color: var(--accent); color: var(--white); }
+
+  .phone-wrap input {
+    border-radius: 0 10px 10px 0;
+    flex: 1;
+  }
+
+  /* Payment confirmation panel */
+  .confirm-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-top: 1rem;
+  }
+
+  .confirm-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.82rem;
+  }
+
+  .confirm-icon { font-size: 1.5rem; }
+
+  .confirm-text { flex: 1; }
+  .confirm-title { font-weight: 600; margin-bottom: 2px; }
+  .confirm-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+
+  /* Pay button */
+  .pay-btn {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    color: var(--black);
+    padding: 18px;
+    border-radius: 14px;
+    font-family: var(--font-head);
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 1.5rem;
+    transition: all 0.25s;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pay-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  .pay-btn:hover { background: #ffb740; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245,166,35,0.3); }
+  .pay-btn:hover::after { transform: translateX(100%); }
+
+  .pay-btn-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* Guarantees */
+  .guarantees {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .guarantee {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .guarantee-icon { font-size: 0.9rem; }
+
+  /* RIGHT: Order summary */
+  .order-summary {
+    background: var(--black);
+    padding: 2.5rem 2rem;
+  }
+
+  .summary-title {
+    font-family: var(--font-head);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Product card in summary */
+  .summary-product {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 1.25rem;
+  }
+
+  .summary-product-thumb {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+
+  .summary-product-info { flex: 1; min-width: 0; }
+
+  .summary-product-cat {
+    font-size: 0.62rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .summary-product-title {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  .summary-seller {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .seller-av-sm {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.48rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  /* Price breakdown */
+  .price-breakdown {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 1.25rem;
+  }
+
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    font-size: 0.82rem;
+  }
+
+  .price-row:not(:last-child) {
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+  }
+
+  .price-label { color: var(--muted); }
+  .price-val { font-weight: 600; }
+
+  .price-row.total {
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid var(--border) !important;
+    border-bottom: none !important;
+  }
+
+  .price-row.total .price-label {
+    font-family: var(--font-head);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+
+  .price-row.total .price-val {
+    font-family: var(--font-head);
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  /* Promo code */
+  .promo-wrap {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .promo-input {
+    flex: 1;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .promo-input:focus { border-color: var(--accent); }
+  .promo-input::placeholder { color: var(--muted); }
+
+  .promo-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .promo-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Trust badges */
+  .trust-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .trust-icon { font-size: 1rem; flex-shrink: 0; }
+
+  /* Seller info */
+  .seller-mini {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .seller-av-md {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .seller-nm { font-size: 0.82rem; font-weight: 600; }
+  .seller-mt { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  /* ===== PROCESSING SCREEN ===== */
+  .processing-screen {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem;
+  }
+
+  .processing-animation {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 2rem;
+  }
+
+  .processing-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: var(--accent);
+    animation: spin 1s linear infinite;
+  }
+
+  .processing-ring:nth-child(2) {
+    inset: 10px;
+    border-top-color: var(--accent2);
+    animation-duration: 0.8s;
+    animation-direction: reverse;
+  }
+
+  .processing-ring:nth-child(3) {
+    inset: 20px;
+    border-top-color: var(--green);
+    animation-duration: 1.2s;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .processing-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+  }
+
+  .processing-title {
+    font-family: var(--font-head);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.75rem;
+  }
+
+  .processing-sub {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.65;
+    max-width: 360px;
+    margin-bottom: 2rem;
+  }
+
+  .processing-steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+    max-width: 340px;
+    margin-bottom: 2rem;
+  }
+
+  .proc-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    transition: all 0.3s;
+  }
+
+  .proc-step.done {
+    border-color: rgba(0,232,150,0.3);
+    background: rgba(0,232,150,0.04);
+    color: var(--white);
+  }
+
+  .proc-step.active {
+    border-color: rgba(245,166,35,0.4);
+    background: rgba(245,166,35,0.05);
+    color: var(--accent);
+  }
+
+  .proc-step-icon {
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+  }
+
+  .proc-step.done .proc-step-icon::before { content: '✓'; color: var(--green); font-weight: 700; font-size: 0.85rem; }
+
+  .proc-spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  /* ===== SUCCESS SCREEN ===== */
+  .success-screen {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem;
+  }
+
+  .success-burst-container {
+    position: relative;
+    width: 100px; height: 100px;
+    margin: 0 auto 2rem;
+  }
+
+  .success-circle {
+    width: 100px; height: 100px;
+    background: linear-gradient(135deg, rgba(0,232,150,0.15), rgba(0,232,150,0.05));
+    border: 2px solid rgba(0,232,150,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    animation: popIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0) rotate(-15deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .confetti {
+    position: absolute;
+    font-size: 1.2rem;
+    animation: confettiFall 1s ease-out both;
+  }
+
+  @keyframes confettiFall {
+    from { transform: translateY(0) rotate(0deg); opacity: 1; }
+    to { transform: translateY(-60px) rotate(180deg); opacity: 0; }
+  }
+
+  .success-main-title {
+    font-family: var(--font-head);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 0.5rem;
+  }
+
+  .success-main-sub {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.65;
+    max-width: 400px;
+    margin: 0 auto 2rem;
+  }
+
+  /* Order card */
+  .order-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 440px;
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  .order-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .order-id {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .order-id span {
+    font-family: var(--font-head);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.82rem;
+  }
+
+  .order-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,232,150,0.1);
+    border: 1px solid rgba(0,232,150,0.2);
+    color: var(--green);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .order-product-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 1.25rem;
+  }
+
+  .order-product-icon {
+    width: 50px; height: 50px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .order-product-name {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .order-product-price {
+    font-size: 0.82rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .order-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .order-detail-item {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .od-label {
+    font-size: 0.62rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .od-val {
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  /* Delivery info box */
+  .delivery-box {
+    background: linear-gradient(135deg, rgba(0,232,150,0.08), rgba(0,232,150,0.03));
+    border: 1px solid rgba(0,232,150,0.2);
+    border-radius: 14px;
+    padding: 18px 20px;
+    width: 100%;
+    max-width: 440px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .delivery-box-icon { font-size: 1.8rem; }
+
+  .delivery-box-text { flex: 1; }
+  .delivery-box-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+
+  .delivery-box-sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Action buttons */
+  .success-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .action-btn-main {
+    flex: 1;
+    min-width: 160px;
+    background: var(--accent);
+    border: none;
+    color: var(--black);
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-family: var(--font-head);
+    font-size: 0.92rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .action-btn-main:hover { background: #ffb740; transform: translateY(-2px); }
+
+  .action-btn-wa {
+    flex: 0 0 auto;
+    background: #25D366;
+    border: none;
+    color: white;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .action-btn-wa:hover { background: #20bd5b; }
+
+  .action-btn-ghost {
+    flex: 0 0 100%;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.2s;
+  }
+
+  .action-btn-ghost:hover { border-color: var(--white); color: var(--white); }
+
+  /* USSD instruction panel */
+  .ussd-panel {
+    display: none;
+    background: var(--card);
+    border: 1.5px solid rgba(245,166,35,0.3);
+    border-radius: 14px;
+    padding: 18px;
+    margin-top: 1rem;
+    animation: fadeIn 0.3s ease both;
+  }
+
+  .ussd-panel.show { display: block; }
+
+  .ussd-title {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ussd-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .ussd-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .ussd-num {
+    width: 20px; height: 20px;
+    background: var(--accent);
+    color: var(--black);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.62rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .ussd-code {
+    font-family: monospace;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+    font-weight: 700;
+    text-align: center;
+    margin: 8px 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .checkout-layout { grid-template-columns: 1fr; }
+    .order-summary { border-top: 1px solid var(--border); }
+    .payment-form { padding: 2rem 1.5rem; border-right: none; }
+  }
+
+  @media (max-width: 500px) {
+    .methods-grid { grid-template-columns: 1fr; }
+    .order-details { grid-template-columns: 1fr; }
+    .processing-screen, .success-screen { padding: 2rem 1rem; }
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">Digi<span>Zone</span> <sup>AF</sup></a>
+  <div class="nav-secure">
+    <div class="secure-dot"></div>
+    Paiement 100% sécurisé
+  </div>
+  <a class="nav-back" href="#">← Retour au produit</a>
+</nav>
+
+<!-- ===== SCREEN 1: CHECKOUT ===== -->
+<div class="screen active" id="screen-checkout">
+  <div class="checkout-layout">
+
+    <!-- LEFT: Form -->
+    <div class="payment-form">
+
+      <!-- Méthode de paiement -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="step-badge">1</div>
+          Choisir ta méthode de paiement
+        </div>
+
+        <div class="methods-grid">
+          <div class="method-card mtn selected" onclick="selectMethod(this,'mtn')">
+            <div class="method-logo mtn-logo">MTN</div>
+            <div class="method-info">
+              <div class="method-name">MTN Mobile Money</div>
+              <div class="method-sub">Bénin · CI · Cameroun</div>
+            </div>
+            <div class="method-check"></div>
+          </div>
+          <div class="method-card orange" onclick="selectMethod(this,'orange')">
+            <div class="method-logo orange-logo">OM</div>
+            <div class="method-info">
+              <div class="method-name">Orange Money</div>
+              <div class="method-sub">Sénégal · CI · Burkina</div>
+            </div>
+            <div class="method-check"></div>
+          </div>
+          <div class="method-card wave" onclick="selectMethod(this,'wave')">
+            <div class="method-logo wave-logo">W</div>
+            <div class="method-info">
+              <div class="method-name">Wave</div>
+              <div class="method-sub">Sénégal · CI · Mali</div>
+            </div>
+            <div class="method-check"></div>
+          </div>
+          <div class="method-card moov" onclick="selectMethod(this,'moov')">
+            <div class="method-logo moov-logo">M</div>
+            <div class="method-info">
+              <div class="method-name">Moov Money</div>
+              <div class="method-sub">Bénin · Togo · BF</div>
+            </div>
+            <div class="method-check"></div>
+          </div>
+          <div class="method-card airtel" onclick="selectMethod(this,'airtel')">
+            <div class="method-logo airtel-logo">A</div>
+            <div class="method-info">
+              <div class="method-name">Airtel Money</div>
+              <div class="method-sub">Congo · RDC</div>
+            </div>
+            <div class="method-check"></div>
+          </div>
+          <div class="method-card card-pay" onclick="selectMethod(this,'card')">
+            <div class="method-logo card-logo">💳</div>
+            <div class="method-info">
+              <div class="method-name">Carte bancaire</div>
+              <div class="method-sub">Visa · Mastercard</div>
+            </div>
+            <div class="method-check"></div>
+          </div>
+        </div>
+
+        <!-- USSD panel for mobile money -->
+        <div class="ussd-panel show" id="ussd-panel">
+          <div class="ussd-title">📱 Comment payer avec MTN MoMo</div>
+          <div class="ussd-steps">
+            <div class="ussd-step">
+              <div class="ussd-num">1</div>
+              Entre ton numéro MTN ci-dessous et clique sur "Payer"
+            </div>
+            <div class="ussd-step">
+              <div class="ussd-num">2</div>
+              Tu recevras une notification USSD sur ton téléphone
+            </div>
+            <div class="ussd-step">
+              <div class="ussd-num">3</div>
+              Compose le code USSD et confirme avec ton PIN
+            </div>
+            <div class="ussd-step">
+              <div class="ussd-num">4</div>
+              Ton produit sera livré <strong style="color:var(--white);">instantanément</strong> par email
+            </div>
+          </div>
+          <div style="font-size:0.7rem;color:var(--muted);">Ou compose directement :</div>
+          <div class="ussd-code">*880# → Option 2</div>
+        </div>
+      </div>
+
+      <div style="height:1px;background:var(--border);margin:1.5rem 0;"></div>
+
+      <!-- Informations acheteur -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="step-badge">2</div>
+          Tes informations
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;margin-bottom:1rem;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Prénom</label>
+            <input type="text" placeholder="Kofi" />
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Nom</label>
+            <input type="text" placeholder="Mensah" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Adresse email <span style="color:var(--accent);font-size:0.65rem;text-transform:none;letter-spacing:0;">— Pour recevoir ton produit</span></label>
+          <div class="input-wrap">
+            <span class="input-prefix-icon">✉️</span>
+            <input type="email" placeholder="tonemail@gmail.com" />
+          </div>
+        </div>
+
+        <div class="field" id="phone-field">
+          <label>Numéro MTN Mobile Money</label>
+          <div class="phone-wrap">
+            <div class="country-code" onclick="toggleCountryPicker()">
+              🇧🇯 +229
+            </div>
+            <input type="tel" placeholder="97 00 00 00" />
+          </div>
+        </div>
+
+        <div class="confirm-panel">
+          <div class="confirm-row">
+            <div class="confirm-icon">⚡</div>
+            <div class="confirm-text">
+              <div class="confirm-title">Livraison instantanée garantie</div>
+              <div class="confirm-sub">Ton produit sera dans ta boîte email dans les 30 secondes après confirmation du paiement.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pay button -->
+      <button class="pay-btn" onclick="startPayment()">
+        🔒 &nbsp; Payer 8 500 FCFA maintenant
+      </button>
+
+      <div class="pay-btn-sub">
+        <span>🔐</span> Paiement crypté · Géré par FedaPay
+      </div>
+
+      <div class="guarantees">
+        <div class="guarantee"><span class="guarantee-icon">✅</span> Paiement sécurisé</div>
+        <div class="guarantee"><span class="guarantee-icon">⚡</span> Livraison instantanée</div>
+        <div class="guarantee"><span class="guarantee-icon">↩️</span> Remboursement 7 jours</div>
+        <div class="guarantee"><span class="guarantee-icon">🛡️</span> Protection acheteur DigiZone</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div class="order-summary">
+      <div class="summary-title">Récapitulatif de commande</div>
+
+      <!-- Product -->
+      <div class="summary-product">
+        <div class="summary-product-thumb">📚</div>
+        <div class="summary-product-info">
+          <div class="summary-product-cat">Ebook</div>
+          <div class="summary-product-title">Guide Complet du Business en Ligne pour l'Afrique 2025</div>
+          <div class="summary-seller">
+            <div class="seller-av-sm">AM</div>
+            Amara Marketing · ⭐ 4.9
+          </div>
+        </div>
+      </div>
+
+      <!-- Price breakdown -->
+      <div class="price-breakdown">
+        <div class="price-row">
+          <span class="price-label">Prix de vente</span>
+          <span class="price-val">10 000 FCFA</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label" style="color:var(--green);">Réduction (15%)</span>
+          <span class="price-val" style="color:var(--green);">- 1 500 FCFA</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">Frais de traitement</span>
+          <span class="price-val" style="color:var(--green);">Gratuit</span>
+        </div>
+        <div class="price-row total">
+          <span class="price-label">Total à payer</span>
+          <span class="price-val">8 500 FCFA</span>
+        </div>
+      </div>
+
+      <!-- Promo code -->
+      <div class="promo-wrap">
+        <input class="promo-input" placeholder="🏷️  Code promo" id="promo-input" />
+        <button class="promo-btn" onclick="applyPromo()">Appliquer</button>
+      </div>
+
+      <!-- Trust badges -->
+      <div class="trust-badges">
+        <div class="trust-badge">
+          <span class="trust-icon">⚡</span>
+          <span>Livraison automatique dans les <strong>30 secondes</strong></span>
+        </div>
+        <div class="trust-badge">
+          <span class="trust-icon">📲</span>
+          <span>Accepte <strong>MTN, Orange, Wave, Moov</strong> et carte bancaire</span>
+        </div>
+        <div class="trust-badge">
+          <span class="trust-icon">↩️</span>
+          <span>Remboursement <strong>sous 7 jours</strong> si non satisfait</span>
+        </div>
+        <div class="trust-badge">
+          <span class="trust-icon">🏆</span>
+          <span><strong>847 personnes</strong> ont déjà acheté ce produit</span>
+        </div>
+      </div>
+
+      <!-- Seller -->
+      <div style="font-size:0.65rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Vendeur</div>
+      <div class="seller-mini">
+        <div class="seller-av-md">AM</div>
+        <div>
+          <div class="seller-nm">Amara Marketing</div>
+          <div class="seller-mt">✓ Vendeur vérifié · Cotonou, Bénin</div>
+        </div>
+        <div style="margin-left:auto;font-size:0.7rem;color:var(--green);">● En ligne</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== SCREEN 2: PROCESSING ===== -->
+<div class="screen" id="screen-processing">
+  <div class="processing-screen">
+
+    <div class="processing-animation">
+      <div class="processing-ring"></div>
+      <div class="processing-ring"></div>
+      <div class="processing-ring"></div>
+      <div class="processing-icon">📱</div>
+    </div>
+
+    <div class="processing-title">Paiement en cours...</div>
+    <p class="processing-sub">Vérifie ton téléphone <strong style="color:var(--white);">+229 97••••••</strong>. Une notification USSD va apparaître. Confirme avec ton PIN MTN MoMo.</p>
+
+    <div class="processing-steps-list">
+      <div class="proc-step done" id="ps-1">
+        <div class="proc-step-icon"></div>
+        Connexion sécurisée FedaPay établie
+      </div>
+      <div class="proc-step active" id="ps-2">
+        <div class="proc-spinner"></div>
+        Notification envoyée à ton téléphone
+      </div>
+      <div class="proc-step" id="ps-3">
+        <div class="proc-step-icon">⏳</div>
+        En attente de ta confirmation PIN
+      </div>
+      <div class="proc-step" id="ps-4">
+        <div class="proc-step-icon">📦</div>
+        Préparation de la livraison
+      </div>
+    </div>
+
+    <div style="font-size:0.8rem;color:var(--muted);margin-bottom:1rem;">
+      La page se met à jour automatiquement dès confirmation.
+    </div>
+
+    <button onclick="simulateSuccess()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px 24px;border-radius:10px;font-size:0.8rem;cursor:pointer;font-family:var(--font-body);transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      Simuler la confirmation →
+    </button>
+
+  </div>
+</div>
+
+<!-- ===== SCREEN 3: SUCCESS ===== -->
+<div class="screen" id="screen-success">
+  <div class="success-screen">
+
+    <div class="success-burst-container">
+      <div class="success-circle">✅</div>
+      <div class="confetti" style="top:-10px;left:0;animation-delay:0.1s;">🎉</div>
+      <div class="confetti" style="top:-10px;right:0;animation-delay:0.2s;">⭐</div>
+      <div class="confetti" style="top:10px;left:-20px;animation-delay:0.3s;">🌟</div>
+    </div>
+
+    <div class="success-main-title">Paiement confirmé !</div>
+    <p class="success-main-sub">
+      Ton produit a été livré dans ta boîte email. Vérifie aussi tes spams si tu ne le trouves pas.
+    </p>
+
+    <!-- Order card -->
+    <div class="order-card">
+      <div class="order-header">
+        <div class="order-id">Commande <span>#DZ-2025-08471</span></div>
+        <div class="order-status">
+          <span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;"></span>
+          Livré
+        </div>
+      </div>
+
+      <div class="order-product-row">
+        <div class="order-product-icon">📚</div>
+        <div>
+          <div class="order-product-name">Guide Complet du Business en Ligne pour l'Afrique 2025</div>
+          <div class="order-product-price">8 500 FCFA · MTN MoMo</div>
+        </div>
+      </div>
+
+      <div class="order-details">
+        <div class="order-detail-item">
+          <div class="od-label">Date</div>
+          <div class="od-val">Aujourd'hui 14h32</div>
+        </div>
+        <div class="order-detail-item">
+          <div class="od-label">Méthode</div>
+          <div class="od-val">📱 MTN MoMo</div>
+        </div>
+        <div class="order-detail-item">
+          <div class="od-label">Livraison</div>
+          <div class="od-val" style="color:var(--green);">⚡ Instantanée</div>
+        </div>
+        <div class="order-detail-item">
+          <div class="od-label">Format</div>
+          <div class="od-val">PDF · 180 pages</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery confirmation -->
+    <div class="delivery-box">
+      <div class="delivery-box-icon">📧</div>
+      <div class="delivery-box-text">
+        <div class="delivery-box-title">Produit livré dans ta boîte email !</div>
+        <div class="delivery-box-sub">Envoyé à <strong style="color:var(--white);">kofi.mensah@gmail.com</strong> · Si tu ne le trouves pas, vérifie tes spams ou contacte le vendeur.</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="success-actions">
+      <button class="action-btn-main">⬇️ Télécharger mon produit</button>
+      <button class="action-btn-wa">💬 WhatsApp vendeur</button>
+      <button class="action-btn-ghost" onclick="restartDemo()">← Retour à la marketplace DigiZone</button>
+    </div>
+
+    <!-- Upsell -->
+    <div style="margin-top:2rem;padding:1.5rem;background:var(--card);border:1px solid var(--border);border-radius:16px;text-align:left;width:100%;max-width:440px;">
+      <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:2px;color:var(--accent);font-weight:700;margin-bottom:0.75rem;">Tu pourrais aussi aimer</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,#1a1a2e,#2d1b69);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:1px solid var(--border);flex-shrink:0;">🎓</div>
+        <div style="flex:1;">
+          <div style="font-family:var(--font-head);font-size:0.85rem;font-weight:700;margin-bottom:3px;">Formation Marketing SMS — Afrique</div>
+          <div style="font-size:0.7rem;color:var(--muted);">Par Amara Marketing · ⭐ 4.7</div>
+        </div>
+        <div style="font-family:var(--font-head);font-size:0.9rem;font-weight:800;color:var(--accent);white-space:nowrap;">15 000 F</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Screen navigation
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Method selection
+  function selectMethod(card, type) {
+    document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+
+    const ussd = document.getElementById('ussd-panel');
+    const phoneField = document.getElementById('phone-field');
+    const payBtn = document.querySelector('.pay-btn');
+
+    if (type === 'card') {
+      ussd.classList.remove('show');
+      phoneField.style.display = 'none';
+      payBtn.textContent = '🔒  Payer 8 500 FCFA — Carte bancaire';
+    } else {
+      ussd.classList.add('show');
+      phoneField.style.display = 'block';
+
+      const labels = {
+        mtn: { name: 'MTN Mobile Money', ussd: '*880# → Option 2', flag: '🇧🇯 +229' },
+        orange: { name: 'Orange Money', ussd: '#144# → Payer', flag: '🇸🇳 +221' },
+        wave: { name: 'Wave', ussd: 'App Wave → Payer', flag: '🇸🇳 +221' },
+        moov: { name: 'Moov Money', ussd: '*155# → Option 3', flag: '🇧🇯 +229' },
+        airtel: { name: 'Airtel Money', ussd: '*500# → Payer', flag: '🇨🇩 +243' },
+      };
+
+      const info = labels[type] || labels.mtn;
+      ussd.querySelector('.ussd-title').textContent = `📱 Comment payer avec ${info.name}`;
+      ussd.querySelector('.ussd-code').textContent = info.ussd;
+      document.querySelector('.country-code').textContent = info.flag;
+      payBtn.textContent = `🔒  Payer 8 500 FCFA — ${info.name}`;
+    }
+  }
+
+  // Start payment → processing screen
+  function startPayment() {
+    showScreen('screen-processing');
+  }
+
+  // Simulate processing steps
+  function simulateSuccess() {
+    const steps = ['ps-2', 'ps-3', 'ps-4'];
+    let i = 0;
+
+    // Mark step 2 as done, activate step 3
+    const interval = setInterval(() => {
+      if (i < steps.length) {
+        const el = document.getElementById(steps[i]);
+        el.classList.remove('active');
+        el.classList.add('done');
+        el.querySelector('.proc-step-icon, .proc-spinner').outerHTML = '<div class="proc-step-icon"></div>';
+
+        if (i + 1 < steps.length) {
+          const next = document.getElementById(steps[i + 1]);
+          next.classList.add('active');
+        }
+        i++;
+      } else {
+        clearInterval(interval);
+        setTimeout(() => showScreen('screen-success'), 600);
+      }
+    }, 700);
+  }
+
+  // Apply promo
+  function applyPromo() {
+    const input = document.getElementById('promo-input');
+    const val = input.value.trim().toUpperCase();
+    if (val === 'BIENVENUE' || val === 'DZ10') {
+      input.style.borderColor = 'var(--green)';
+      input.style.color = 'var(--green)';
+      alert('✅ Code promo "' + val + '" appliqué ! -10% sur ta commande.');
+    } else if (val) {
+      input.style.borderColor = 'var(--red)';
+      setTimeout(() => {
+        input.style.borderColor = '';
+        input.style.color = '';
+      }, 2000);
+      alert('❌ Code promo invalide ou expiré.');
+    }
+  }
+
+  function toggleCountryPicker() {
+    const codes = ['🇧🇯 +229', '🇸🇳 +221', '🇨🇮 +225', '🇹🇬 +228', '🇧🇫 +226', '🇨🇲 +237'];
+    const el = document.querySelector('.country-code');
+    const cur = codes.indexOf(el.textContent.trim());
+    el.textContent = codes[(cur + 1) % codes.length];
+  }
+
+  function restartDemo() {
+    showScreen('screen-checkout');
+  }
+</script>
+
+</body>
+</html>
