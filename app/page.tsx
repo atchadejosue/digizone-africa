@@ -4,7 +4,7 @@ import { supabase } from './lib/supabase';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [products, setProducts] = useState([]);
+ const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
