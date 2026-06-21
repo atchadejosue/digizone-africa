@@ -1,8 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function Confirmation() {
+function ConfirmationContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState('checking');
 
@@ -70,6 +70,14 @@ export default function Confirmation() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Confirmation() {
+  return (
+    <Suspense fallback={<div style={styles.container}><div style={styles.card}><p style={{color:'#f0ede8'}}>Chargement...</p></div></div>}>
+      <ConfirmationContent />
+    </Suspense>
   );
 }
 
