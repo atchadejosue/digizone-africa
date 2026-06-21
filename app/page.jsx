@@ -4,7 +4,7 @@ import { supabase } from './lib/supabase';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -18,9 +18,6 @@ const [products, setProducts] = useState([]);
       .from('products')
       .select('*')
       .order('created_at', { ascending: false });
-
-    console.log('DONNÉES PRODUITS:', data);
-    console.log('ERREUR:', error);
 
     if (!error) setProducts(data || []);
     setLoading(false);
@@ -71,7 +68,7 @@ const [products, setProducts] = useState([]);
             <div
               key={product.id}
               style={styles.card}
-              onClick={() => router.push(`/produit/${product.id}`)}
+              onClick={() => router.push('/produit/' + product.id)}
             >
               <div style={styles.thumb}>📦</div>
               <div style={styles.cardBody}>
